@@ -1,0 +1,20 @@
+{
+  "autoload": {
+    "psr-4": {
+      "app\\": "src/"
+    }
+  },
+  "name": "vendor_name/vk_projcet",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Зиннур",
+      "email": "zagidullin_zin@mail.ru"
+    }
+  ],
+  "require": {
+    "ext-pdo": "*"
+  }
+}
