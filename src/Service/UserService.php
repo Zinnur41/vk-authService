@@ -1,10 +1,10 @@
 <?php
 
 namespace app\Service;
-require '../Database/Database.php';
+
+require __DIR__ . '/../../vendor/autoload.php';
 
 use app\Database\Database;
-use Exception;
 use PDO;
 
 class UserService
@@ -16,19 +16,22 @@ class UserService
         $this->pdo = $db->getPdo();
     }
 
-    /**
-     * @throws Exception
-     */
-    public function register(string $email, string $password)
+    public function register(string $email, string $password): array
     {
         if ($this->findUserByEmail($email)) {
-            throw new Exception('Пользователь с таким email уже существует!');
+            return [
+              'message' => 'Пользвователь с таким email уже сущесвтует!'
+            ];
         } else
             if (!$this->validateEmail($email)) {
-                throw new Exception('Email не валиден!');
+                return [
+                    'message' => 'Email не валиден!'
+                ];
             }
             if (!$this->checkPassword($password)) {
-                throw new Exception("Ненадежный пароль!");
+                return [
+                    'message' => 'Ненадежный пароль!'
+                ];
             }
             $query = "INSERT INTO user_account(email, password) VALUES (:email, :password)";
             $statement = $this->pdo->prepare($query);
@@ -47,13 +50,20 @@ class UserService
         {
             $user = $this->findUserByEmail($email);
             if (!$user) {
-                throw new Exception('Вы не зарегистрированы!');
-            } else if (!password_verify($password, $user['password'])) {
-                throw new Exception('Пароль не совпадает!');
+                return [
+                    'message' => 'Вы не зарегистрированы!'
+                ];
+            } else if ($email !== $user['email'] || !password_verify($password, $user['password'])) {
+                return [
+                    'message' => 'Пароль или email не совпадают!'
+                ];
             } else {
-
+                return [
+                    'message' => http_response_code(200)
+                ];
             }
         }
+
 
     public function findUserByEmail(string $email): bool|array
     {
@@ -89,10 +99,4 @@ class UserService
         return $check_status;
     }
 }
-
-$database = new Database();
-$user = new UserService($database);
-
-print_r($user->checkPassword('adsca-sAca2scd'));
-
 
