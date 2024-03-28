@@ -1,10 +1,9 @@
 <?php
 
 require __DIR__ . '/../Database/connect.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use app\Service\UserService;
-
-require __DIR__ . '/../../vendor/autoload.php';
 
 $fields = [
     'email' => $_POST['email'],
@@ -14,6 +13,3 @@ $fields = [
 /** @var $database */
 $user = new UserService($database);
 print_r($user->register($fields['email'], $fields['password']));
-
-
-
