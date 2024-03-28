@@ -15,7 +15,7 @@ $user = new UserService($database);
 $token = $user->authorize($fields['email'], $fields['password']);
 ?>
 
-<?php if (!is_array($token)) { ?>
+<?php if (!is_array(json_decode($token, true))) { ?>
     <!doctype html>
     <html lang="en">
     <head>
@@ -29,4 +29,4 @@ $token = $user->authorize($fields['email'], $fields['password']);
     </form>
     </body>
     </html>
-<?php } else print_r($user->authorize($fields['email'], $fields['password']));?>
+<?php } else print_r(json_decode($user->authorize($fields['email'], $fields['password']), true));?>

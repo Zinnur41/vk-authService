@@ -9,4 +9,4 @@ require __DIR__ . '/../../src/Database/connect.php';
 $user = new UserService($database);
 
 $token = $_POST['token'];
-print_r($user->feed($token));
+print_r(json_decode($user->feed($token), true));

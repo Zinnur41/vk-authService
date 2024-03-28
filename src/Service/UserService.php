@@ -20,22 +20,22 @@ class UserService
         $this->pdo = $db->getPdo();
     }
 
-    public function register(string $email, string $password): array
+    public function register(string $email, string $password)
     {
         if ($this->findUserByEmail($email)) {
-            return [
+            return json_encode([
               'message' => 'Пользвователь с таким email уже сущесвтует!'
-            ];
+            ]);
         } else
             if (!$this->validateEmail($email)) {
-                return [
+                return json_encode([
                     'message' => 'Email не валиден!'
-                ];
+                ]);
             }
             if (!$this->checkPassword($password)) {
-                return [
+                return json_encode([
                     'message' => 'Ненадежный пароль!'
-                ];
+                ]);
             }
             $query = "INSERT INTO user_account(email, password) VALUES (:email, :password)";
             $statement = $this->pdo->prepare($query);
@@ -44,36 +44,38 @@ class UserService
                 ':password' => password_hash($password, PASSWORD_DEFAULT),
             ]);
             $user_id = $this->pdo->lastInsertId();
-            return [
+            return json_encode([
                 'user_id' => $user_id,
                 'password_check_status' => $this->checkPassword($password)
-            ];
+            ]);
         }
 
         public function authorize(string $email, string $password): array|string
         {
             $user = $this->findUserByEmail($email);
             if (!$user) {
-                return [
+                return json_encode([
                     'message' => 'Вы не зарегистрированы!'
-                ];
+                ]);
             } else if (!password_verify($password, $user['password'])) {
-                return [
+                return json_encode([
                     'message' => 'Пароль не совпадает!'
-                ];
+                ]);
             } else {
                 return JWT::encode(['user_id' => $user['id']], 'secret_key', 'HS256');
             }
         }
 
-        public function feed($token): bool|int
+        public function feed($token)
         {
             $decoded = JWT::decode($token, new Key('secret_key', 'HS256'));
 
             if (!isset($decoded->user_id)) {
                 return throw new UnauthorizedException('unauthorized', 401, null);
             } else {
-                return http_response_code(200);
+                return json_encode([
+                    'status' => http_response_code(200)
+                ]);
             }
         }
 
