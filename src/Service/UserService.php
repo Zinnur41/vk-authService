@@ -5,7 +5,11 @@ namespace app\Service;
 require __DIR__ . '/../../vendor/autoload.php';
 
 use app\Database\Database;
+use Cassandra\Exception\UnauthorizedException;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use PDO;
+
 
 class UserService
 {
@@ -46,21 +50,30 @@ class UserService
             ];
         }
 
-        public function authorize(string $email, string $password)
+        public function authorize(string $email, string $password): array|string
         {
             $user = $this->findUserByEmail($email);
             if (!$user) {
                 return [
                     'message' => 'Вы не зарегистрированы!'
                 ];
-            } else if ($email !== $user['email'] || !password_verify($password, $user['password'])) {
+            } else if (!password_verify($password, $user['password'])) {
                 return [
-                    'message' => 'Пароль или email не совпадают!'
+                    'message' => 'Пароль не совпадает!'
                 ];
             } else {
-                return [
-                    'message' => http_response_code(200)
-                ];
+                return JWT::encode(['user_id' => $user['id']], 'secret_key', 'HS256');
+            }
+        }
+
+        public function feed($token): bool|int
+        {
+            $decoded = JWT::decode($token, new Key('secret_key', 'HS256'));
+
+            if (!isset($decoded->user_id)) {
+                return throw new UnauthorizedException('unauthorized', 401, null);
+            } else {
+                return http_response_code(200);
             }
         }
 
@@ -85,7 +98,6 @@ class UserService
 
     public function checkPassword($password): bool|string
     {
-        $check_status = '';
         if (strlen($password) < 8 ||
             !preg_match("#[0-9]+#", $password) ||
             !preg_match("#[a-z]+#", $password)
